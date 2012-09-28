@@ -17,8 +17,8 @@
  *
  * @package     Laravel-Compactor
  * @author      Eric Barnes
- * @author      Jeroen Van M.
- * @author      Joseba J.
+ * @author      Jeroen van Meerendonk
+ * @author      Joseba Juaniz
  * @copyright   Copyright (c) Eric Barnes. (http://ericlbarnes.com/)
  * @copyright   Copyright (c) Cyneek. (http://cyneek.com)
  * @license     http://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
@@ -78,6 +78,36 @@ class Compactor {
         }
 
         return $this -> $child;
+    }
+
+    // ------------------------------------------------------------------------
+    
+    /**
+     * Compile LESS File
+     *
+     * Pass an array of files and combine them.
+     * @param array $files
+     * @param string $type
+     * @param bool $compact
+     * @param string $css_charset
+     * @return mixed
+     */
+    public function compile_less_file($source, $output) {
+
+    	// TODO: Esto se debería cargar una sola vez
+		require __DIR__.'/lessc.inc.php';
+
+		$less	= new lessc;
+
+		try
+		{
+			$less->compileFile($source, $output);
+		}
+		catch (exception $ex)
+		{
+			exit('lessc fatal error:<br />'.$ex->getMessage());
+		}
+
     }
 
     // ------------------------------------------------------------------------
