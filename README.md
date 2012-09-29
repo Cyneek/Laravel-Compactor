@@ -66,13 +66,11 @@ LICENSE: http://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
 											passed through the $file parameter.
 	
 	### Less class:
-	
-		(from all the list of methods, the most important)
 		
-		- compileFile($fname, $outFname = null):		Compiles the less file passed throught the $fname
-														parameter and saves it in the file set on $outFname.
-														If the second parameter is NULL, the method will 
-														return a string with all the data.
+		- min($file, $compact = TRUE, $is_aggregated = NULL):		Compiles the less file passed throught the $fname
+																	parameter and saves it in the file set on $outFname.
+																	If the second parameter is NULL, the method will 
+																	return a string with all the data.
 																
 
 ## EXAMPLES
@@ -101,12 +99,29 @@ LICENSE: http://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
 		$css_path.'other_styles.css'
 	);
 
+	$less_files	= array(
+		$less_path.'styles.less',
+		$less_path.'another_style.less'
+	);
+	
+	$js_files = array(
+		$js_path.'header.js',
+		$js_path.'header2.js'
+	);
+
+	LESS
+	$compactor->combine_files($less_files)->save_file($css_path.'style.min.css');
+	$compactor->combine_directory($less_path)->save_file($css_path.'style.min.css');
+	CSS
 	$compactor->combine_files($css_files)->save_file($css_path.'style.min.css');
 	$compactor->combine_directory(path('public').'css_files')->save_file($css_path.'style2.min.css');
+	JS
+	$compactor->combine_files($js_files)->save_file($js_path.'header.min.js');
+	$compactor->combine_directory($js_path)->save_file($js_path.'header.min.js');
 	
 	// Direct access to css and js methods
 	
 	echo $compactor->js->min($js_path.'header.js');
 	echo $compactor->css->min($css_path.'styles.css');
-	
+	echo $compactor->less->min($less_path.'syles.less');
 	
