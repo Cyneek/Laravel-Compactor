@@ -24,7 +24,7 @@ LICENSE: http://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
 
 ## API LIST OF METHODS:
 	
-	Compactor class:
+	### Compactor class:
 		
 		- combine_file($file): 		Selects a file to compact, you can pass a string parameter
 									with just one file to compact or pass an array of strings with
@@ -55,17 +55,17 @@ LICENSE: http://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
 			example: $compactor->show_contents();
 			example: $compactor->combine_directory('../css_files')->show_contents();
 	
-	Css class:
+	### Css class:
 	
 		- min($file, $compact = TRUE, $is_aggregated = NULL): 	Returns a string with the data from the file
 																passed throught the $file parameter.
 	
-	Jss class:
+	### Jss class:
 	
 		- min($file, $compact = TRUE):		Returns a string with the data from the file
 											passed through the $file parameter.
 	
-	Less class:
+	### Less class:
 	
 		(from all the list of methods, the most important)
 		
