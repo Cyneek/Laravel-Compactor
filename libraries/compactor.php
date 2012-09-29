@@ -23,7 +23,7 @@
  * @copyright   Copyright (c) Cyneek. (http://cyneek.com)
  * @license     http://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  * @link        http://cyneek.com
- * @since       Version 1.0
+ * @since       Version 1.2
  * @filesource
  *
  */
