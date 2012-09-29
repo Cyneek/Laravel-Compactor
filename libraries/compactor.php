@@ -18,7 +18,7 @@
  * @package     Laravel-Compactor
  * @author      Eric Barnes
  * @author      Jeroen van Meerendonk
- * @author      Joseba Juaniz
+ * @author      Joseba Juániz
  * @copyright   Copyright (c) Eric Barnes. (http://ericlbarnes.com/)
  * @copyright   Copyright (c) Cyneek. (http://cyneek.com)
  * @license     http://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
@@ -42,7 +42,8 @@ class Compactor {
      */
      
      
-    var $contents = NULL;
+
+	var $file_list = array();
      
     public function __construct() {
         Log::write('debug', 'Compactor: Library nitialized.');
@@ -56,7 +57,6 @@ class Compactor {
      * @param
      */
     function __get($child) {
-
         if (!isset($this -> $child)) {
             $child_file = __DIR__ . '/drivers/' . strtolower(get_class($this)) . '_' . $child . '.php';
             $child_class = get_class($this) . '_' . $child;
@@ -81,36 +81,6 @@ class Compactor {
     }
 
     // ------------------------------------------------------------------------
-    
-    /**
-     * Compile LESS File
-     *
-     * Pass an array of files and combine them.
-     * @param array $files
-     * @param string $type
-     * @param bool $compact
-     * @param string $css_charset
-     * @return mixed
-     */
-    public function compile_less_file($source, $output) {
-
-    	// TODO: Esto se debería cargar una sola vez
-		require __DIR__.'/lessc.inc.php';
-
-		$less	= new lessc;
-
-		try
-		{
-			$less->compileFile($source, $output);
-		}
-		catch (exception $ex)
-		{
-			exit('lessc fatal error:<br />'.$ex->getMessage());
-		}
-
-    }
-
-    // ------------------------------------------------------------------------
 
     /**
      * Combine Files
@@ -120,15 +90,21 @@ class Compactor {
      * @param string $type
      * @param bool $compact
      * @param string $css_charset
-     * @return mixed
+     * @return this
      */
-    public function combine_files($files = array(), $type = '', $compact = TRUE, $css_charset = 'utf-8') {
-        if (!is_array($files) OR count($files) < 1) {
+    public function combine_files($files) {
+    	
+
+        if(!is_array($files))
+		{
+			$files = array($files);
+		}
+        if (count($files) < 1) {
             Log::write('error', 'Compactor->combine_files missing files array');
             return FALSE;
         }
 
-        return $this -> _do_combine($files, $type, $compact, $css_charset);
+        return $this -> _insert_files($files);
     }
 
     // ------------------------------------------------------------------------
@@ -143,9 +119,9 @@ class Compactor {
      * @param string $type
      * @param bool $compact
      * @param string $css_charset
-     * @return string
+     * @return this
      */
-    public function combine_directory($directory = '', Array $ignore = array(), $type = '', $compact = TRUE, $css_charset = 'utf-8') {
+    public function combine_directory($directory = '', Array $ignore = array()) {
         $available = array();
 
         if ($directory == '' OR !is_dir($directory)) {
@@ -172,8 +148,28 @@ class Compactor {
             }
         }
 
-        return $this -> _do_combine($available, $type, $compact, $css_charset);
+        return $this -> _insert_files($available);
     }
+	
+	
+    // ------------------------------------------------------------------------
+
+    /**
+     * Adds the file list
+     *
+     * Adds to the file list to combine.
+     *
+     * @param array $files
+     * @return this
+     */
+     private function _insert_files($files)
+	 {
+	 	$this->file_list = array_merge($this->file_list, array_values($files));
+
+		return $this;
+	 }
+	
+	
 
     // ------------------------------------------------------------------------
 
@@ -188,13 +184,12 @@ class Compactor {
      * @param string $css_charset
      * @return string
      */
-      private function _do_combine($files, $type, $compact = TRUE, $css_charset = 'utf-8') {
+      private function _do_combine( $type, $compact = TRUE, $css_charset = 'utf-8') {
             
-        $this->contents = NULL;
         $contents = '';
         $file_count = 0;
 
-        foreach ($files AS $file) {
+        foreach ($this->file_list AS $file) {
             if (!file_exists($file)) {
                 Log::write('error', 'Compactor->_do_combine missing file ' . $file);
                 continue;
@@ -226,9 +221,7 @@ class Compactor {
                 $contents .= $file . "\n\n";
             }
         }
-            
-        $this->contents = $contents;
-        return $this;
+        return $contents;
     }
 
     // ------------------------------------------------------------------------
@@ -241,8 +234,8 @@ class Compactor {
      * @param string $full_path
      * @return bool
      */
-     public function save_file($full_path = '') {
-        if (!File::put($full_path, $this->show_contents())) {
+     public function save_file($full_path = '', $type = '', $compact = TRUE, $css_charset = 'utf-8') {
+        if (!File::put($full_path, $this->show_contents($type = '', $compact = TRUE, $css_charset = 'utf-8'))) {
             Log::write('error', 'Compactor->save_file could not write file');
             return FALSE;
         }
@@ -266,12 +259,23 @@ class Compactor {
      *
      * @return String
      */
-    public function show_contents()
+    public function show_contents($type = '', $compact = TRUE, $css_charset = 'utf-8')
     {
-        $return_data = $this->contents;
-        $this->contents = NULL;
-        return $return_data;
+        $return_data = $this->_do_combine($type, $compact, $css_charset);
+		$this->release();
+		return $return_data;
     }
+	
+	
+	/**
+	 * emptys the file list
+	 *
+	 * @return Nothing
+	 * @author  JosebaJ.
+	 */
+	function release() {
+		$this->file_list = array();
+	}
 
     // ------------------------------------------------------------------------
 

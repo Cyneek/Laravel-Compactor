@@ -17,8 +17,8 @@
  *
  * @package     Laravel-Compactor
  * @author      Eric Barnes
- * @author      Jeroen van Meerendonk
- * @author      Joseba Juaniz
+ * @author      Jeroen Van M.
+ * @author      Joseba J.
  * @copyright   Copyright (c) Eric Barnes. (http://ericlbarnes.com/)
  * @copyright   Copyright (c) Cyneek. (http://cyneek.com)
  * @license     http://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
