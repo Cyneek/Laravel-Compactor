@@ -1,107 +1,73 @@
-# Laravel Compactor v.1.2
+# Laravel Compactor
 
-A minification bundle for Laravel
+A minification bundle for Laravel, based on the [Minify Driver for CodeIgniter](https://github.com/ericbarnes/ci-minify) by [Eric Barnes](http://ericlbarnes.com/).
 
 
-Based on the Minify Driver for Codeigniter by Eric Barnes.
+## Credits
+* Jeroen van Meerendonk - [GitHub](http://github.com/jeroen) - [Twitter](http://twitter.com/jeroen_bz)
+* Joseba Juániz - [GitHub](http://github.com/patroklo) - [Twitter](http://twitter.com/patroklo)
 
-NOTICE OF LICENSE
-
-Licensed under the Open Software License version 3.0
-
-This source file is subject to the Open Software License (OSL 3.0) that is
-bundled with this package in the files license.txt / license.rst.  It is
-also available through the world wide web at this URL:
-http://opensource.org/licenses/OSL-3.0
-
-LICENSE: http://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
-
-## Author list: 
-
-		Jeroen Van Meerendonk
-		Joseba Juániz
-		Eric Barnes
-
-## API LIST OF METHODS:
+## Usage
 	
-	### Compactor class:
-		
-		- combine_file($file): 		Selects a file to compact, you can pass a string parameter
-									with just one file to compact or pass an array of strings with
-									a list of files that will be checked for compactation.
-			
-			example: $compactor->combine_files('../file.css');
-			example: $compactor->combine_files(array('../file1.css','../file2.css'));
+### Compactor class
 	
-	
-		- combine_directory($dir, (opt)$ignore): 	Selects a group of css or js files from a directory 
-													to compact you can pass optionally a second parameter 
-													with an array of files to be ignored in the compact 
-													process.
-			
-			example: $compactor->combine_directory('../css_files');
-			example: $compactor->combine_directory('../css_files', array('../css_files/file1.css'));
-		
-		- save_file($file)		Compacts all the files selected and saves the stream
-								in the given route.
-			
-			example: $compactor->save_file('../css/compact.css');
-			example: $compactor->combine_directory('../css_files')->save_file('../css/compact.css');
-		
-		- show_contents($type, $compact = TRUE, $css_charset = 'utf-8'):
-								
-								Returns in a string the compacted contents of the selected files.
-			
-			example: $compactor->show_contents();
-			example: $compactor->combine_directory('../css_files')->show_contents();
-	
-	### Css class:
-	
-		- min($file, $compact = TRUE, $is_aggregated = NULL): 	Returns a string with the data from the file
-																passed throught the $file parameter.
-	
-	### Jss class:
-	
-		- min($file, $compact = TRUE):		Returns a string with the data from the file
-											passed through the $file parameter.
-	
-	### Less class:
-		
-		- min($file, $compact = TRUE, $is_aggregated = NULL):		Compiles the less file passed throught the $fname
-																	parameter and saves it in the file set on $outFname.
-																	If the second parameter is NULL, the method will 
-																	return a string with all the data.
-																
+#### `combine_file($file)`
+Selects a file to compact. Iou can pass a string parameter with just one file to compact or pass an array of strings with a list of files that will be checked for compactation.
 
-## EXAMPLES
+	$compactor->combine_files('../file.css');
+	$compactor->combine_files(array('../file1.css','../file2.css'));
+
+#### `combine_directory($dir, (opt)$ignore)`
+Selects a group of css or js files from a directory to compact. You can pass optionally a second parameter with an array of files to be ignored in the compact process.
+
+	$compactor->combine_directory('../css_files');
+	$compactor->combine_directory('../css_files', array('../css_files/file1.css'));
 
 
-	Here's an example of how to use it in a controller.
+#### `save_file($file)`
+Compacts all the files selected and saves the stream in the given route.
 
-	$less_path	= path('public').'less/';
-	$css_path	= path('public').'css/';
-	$js_path	= path('public').'js/';
+	$compactor->save_file('../css/compact.css');
+	$compactor->combine_directory('../css_files')->save_file('../css/compact.css');
+
+
+#### `show_contents($type, $compact = TRUE, $css_charset = 'utf-8')`
+Returns in a string the compacted contents of the selected files.
+
+	$compactor->show_contents();
+	$compactor->combine_directory('../css_files')->show_contents();
+
+
+### CSS class
+
+`min($file, $compact = TRUE, $is_aggregated = NULL)`: Returns a string with the data from the file passed throught the $file parameter.
+
+### JS class
+
+`min($file, $compact = TRUE)`: Returns a string with the data from the file passed through the $file parameter.
+
+### LESS class
 	
+`min($file, $compact = TRUE, $is_aggregated = NULL)`: Compiles the less file passed throught the $fname parameter and saves it in the file set on $outFname. If the second parameter is NULL, the method will return a string with all the data.
+											
+
+## Examples
+
+Here's an example of how to use it in a controller.
+
 	Bundle::start('compactor');
 	$compactor = new Compactor();
 
+	// The paths
+	$less_path	= path('public').'less/';
+	$css_path	= path('public').'css/';
+	$js_path	= path('public').'js/';
 
-	// Compiling LESS into CSS
-
-	$compactor->less->compileFile($less_path.'styles.less', $css_path.'styles.css');
-	$compactor->less->compileFile($less_path.'other_styles.less', $css_path.'other_styles.css');
-
-
-	// Minifying and combining
-	
+	// Some groups
 	$css_files	= array(
-		$css_path.'styles.css',
-		$css_path.'other_styles.css'
-	);
-
-	$less_files	= array(
-		$less_path.'styles.less',
-		$less_path.'another_style.less'
+		$css_path.'bootstrap.css',
+		$less_path.'style.less',
+		$less_path.'admin.less'
 	);
 	
 	$js_files = array(
@@ -109,23 +75,24 @@ LICENSE: http://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
 		$js_path.'header2.js'
 	);
 
-	LESS
-	$compactor->combine_files($less_files)->save_file($css_path.'style.min.css');
-	$compactor->combine_directory($less_path)->save_file($css_path.'style.min.css');
-	CSS
 	$compactor->combine_files($css_files)->save_file($css_path.'style.min.css');
-	$compactor->combine_directory(path('public').'css_files')->save_file($css_path.'style2.min.css');
-	JS
-	$compactor->combine_files($js_files)->save_file($js_path.'header.min.js');
-	$compactor->combine_directory($js_path)->save_file($js_path.'header.min.js');
+	$compactor->combine_files($js_files)->save_file($js_path.'footer.min.js');
 	
-	COMBINE FILES
-	You can combine less and css files in the compactor, any other file will be ignored
-	$compactor->combine_files($less_files)->combine_directory(path('public').'css_files')->save_file($css_path.'style.min.css');
+You can combine LESS and CSS files in the compactor, any other file will be ignored.
+
+	$compactor
+		->combine_files($less_files)
+		->combine_directory(path('public').'css_files')
+		->save_file($css_path.'style.min.css');
 	
-	// Direct access to css and js methods
+Direct access to css and js methods
 	
 	echo $compactor->js->min($js_path.'header.js');
 	echo $compactor->css->min($css_path.'styles.css');
 	echo $compactor->less->min($less_path.'syles.less');
 	
+## Change log
+
+### 1.2
+* Bug corrections.
+* New documentation.
