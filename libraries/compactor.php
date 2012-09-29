@@ -42,7 +42,7 @@ class Compactor {
      */
      
      
-
+	var $compat_list = array('css' => array('css','less'), 'less' => array('css', 'less'), 'js' => array('js'));
 	var $file_list = array();
      
     public function __construct() {
@@ -201,6 +201,12 @@ class Compactor {
             
         $contents = '';
         $file_count = 0;
+		
+		
+		if($type !== '')
+		{
+			$type = $this -> compat_list[ $type ];
+		}
 
         foreach ($this->file_list AS $file) {
             if (!file_exists($file)) {
@@ -210,14 +216,22 @@ class Compactor {
 
             $file_count++;
 
+			$file_type = $this -> _get_type($file);
+
             if ($type == '') {
-                $type = $this -> _get_type($file);
+                $type = $this -> compat_list[ $file_type ];
             }
+				
+            if (!in_array($file_type, $type)) {
+                Log::write('error', 'Compactor->_do_combine you are trying to combine incompatible files ' . $file);
+                continue;
+            }			
+			
 
             $path_info = pathinfo($file, PATHINFO_BASENAME);
             // Referal File and path
 
-            if ($type == 'css') {
+            if ($file_type == 'css') {
                 // only one charset placed at the beginning of the document is allowed
                 // in order to keep standars compliance and fixing Webkit problems
                 // Note: Minify_css driver yet remove all charsets previously
@@ -226,12 +240,12 @@ class Compactor {
                 }
                 $contents .= "\n" . '/* @fileRef ' . $path_info . ' */' . "\n";
                 $contents .= $this -> css -> min($file, $compact, $is_aggregated = TRUE);
-            } elseif ($type == 'js') {
+            } elseif ($file_type == 'js') {
                 unset($css_charset);
                 $contents .= "\n" . '// @fileRef ' . $path_info . ' ' . "\n";
                 $contents .= $this -> js -> min($file, $compact);
             }
-			elseif( $type == 'less') {
+			elseif( $file_type == 'less') {
 				if($file_count == 1){
 					$contents .= '@charset "' . $css_charset . '";' . "\n";
 				}
@@ -256,7 +270,14 @@ class Compactor {
      * @return bool
      */
      public function save_file($full_path = '', $type = '', $compact = TRUE, $css_charset = 'utf-8') {
-        if (!File::put($full_path, $this->show_contents($type = '', $compact = TRUE, $css_charset = 'utf-8'))) {
+	
+    	if($type == '')
+		{
+			$fext = explode('.', $full_path);
+			$type = (($fext[ count($fext) - 1] == 'css' or $fext[ count($fext) - 1] == 'js')?$fext[ count($fext) - 1]:'');
+		} 	
+	
+        if (!File::put($full_path, $this->show_contents($type, $compact, $css_charset))) {
             Log::write('error', 'Compactor->save_file could not write file');
             return FALSE;
         }
@@ -322,6 +343,8 @@ class Compactor {
     private function _get_mime($file) {
         return File::mime($file);
     }	
+	
+	
 
 }
 

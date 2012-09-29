@@ -119,6 +119,10 @@ LICENSE: http://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
 	$compactor->combine_files($js_files)->save_file($js_path.'header.min.js');
 	$compactor->combine_directory($js_path)->save_file($js_path.'header.min.js');
 	
+	COMBINE FILES
+	You can combine less and css files in the compactor, any other file will be ignored
+	$compactor->combine_files($less_files)->combine_directory(path('public').'css_files')->save_file($css_path.'style.min.css');
+	
 	// Direct access to css and js methods
 	
 	echo $compactor->js->min($js_path.'header.js');
