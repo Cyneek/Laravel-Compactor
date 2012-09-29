@@ -16,9 +16,9 @@
  * http://opensource.org/licenses/OSL-3.0
  *
  * @package     Laravel-Compactor
- * @author      Eric Barnes
  * @author      Jeroen van Meerendonk
  * @author      Joseba Juániz
+ * @author      Eric Barnes
  * @copyright   Copyright (c) Eric Barnes. (http://ericlbarnes.com/)
  * @copyright   Copyright (c) Cyneek. (http://cyneek.com)
  * @license     http://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
@@ -93,7 +93,7 @@ class Compactor {
      * @return this
      */
     public function combine_files($files) {
-    	
+		$available = array();
 
         if(!is_array($files))
 		{
@@ -104,7 +104,17 @@ class Compactor {
             return FALSE;
         }
 
-        return $this -> _insert_files($files);
+		foreach($files as $file)
+		{
+			if ($this->_get_mime($file) == 'application/octet-stream' and 
+					($this->_get_type($file) == 'js' OR 
+					 $this->_get_type($file) == 'css' OR
+					 $this->_get_type($file) == 'less')) {
+				$available[] = $file;
+			}
+		}
+
+        return $this -> _insert_files($available);
     }
 
     // ------------------------------------------------------------------------
@@ -134,7 +144,10 @@ class Compactor {
         //we get all the files with a file iterator
         foreach ($items as $dir => $file) {
 
-            if (File::mime($dir) == 'application/octet-stream' and ($this->_get_type($dir) == 'js' OR $this->_get_type($dir) == 'css')) {
+ 			if ($this->_get_mime($dir) == 'application/octet-stream' and 
+					($this->_get_type($dir) == 'js' OR 
+					 $this->_get_type($dir) == 'css' OR
+					 $this->_get_type($dir) == 'less')) {
                 $available[$file -> getBaseName()] = $dir;
             }
         }
@@ -217,7 +230,15 @@ class Compactor {
                 unset($css_charset);
                 $contents .= "\n" . '// @fileRef ' . $path_info . ' ' . "\n";
                 $contents .= $this -> js -> min($file, $compact);
-            } else {
+            }
+			elseif( $type == 'less') {
+				if($file_count == 1){
+					$contents .= '@charset "' . $css_charset . '";' . "\n";
+				}
+				$contents .= "\n" . '/* @fileRef ' . $path_info . ' */' . "\n";
+                $contents .= $this -> less -> min($file, $compact, $is_aggregated = TRUE);
+			}
+			else {
                 $contents .= $file . "\n\n";
             }
         }
@@ -271,7 +292,6 @@ class Compactor {
 	 * emptys the file list
 	 *
 	 * @return Nothing
-	 * @author  JosebaJ.
 	 */
 	function release() {
 		$this->file_list = array();
@@ -290,6 +310,18 @@ class Compactor {
     private function _get_type($file) {
         return File::extension($file);
     }
+	
+    /**
+     * Get Mime
+     *
+     * Get the file mime to determine file type
+     *
+     * @param string $file
+     * @return string
+     */
+    private function _get_mime($file) {
+        return File::mime($file);
+    }	
 
 }
 

@@ -1,10 +1,160 @@
 <?php
 
 /**
+ * Laravel Compactor
+ *
+ * A minification bundle for Laravel
+ *
+ * Based on the Minify Driver for Codeigniter by Eric Barnes
+ *
+ * NOTICE OF LICENSE
+ *
+ * Licensed under the Open Software License version 3.0
+ *
+ * This source file is subject to the Open Software License (OSL 3.0) that is
+ * bundled with this package in the files license.txt / license.rst.  It is
+ * also available through the world wide web at this URL:
+ * http://opensource.org/licenses/OSL-3.0
+ *
+ * @package     Laravel-Compactor
+ * @author      Jeroen Van Meerendonk
+ * @author      Joseba Juániz
+ * @author      Eric Barnes
+ * @copyright   Copyright (c) Eric Barnes. (http://ericlbarnes.com/)
+ * @copyright   Copyright (c) Cyneek. (http://cyneek.com)
+ * @license     http://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
+ * @link        http://cyneek.com
+ * @since       Version 1.2
+ * @filesource
+ *
+ */
+
+// ------------------------------------------------------------------------
+
+/**
+ * Minify LESS Driver
+ *
+ * @subpackage  Drivers
+ */
+class Compactor_less {
+	
+	/**
+     * Constructor
+     *
+     * @return \Minify_css
+     */
+    public function __construct() {
+        Log::write('debug', 'Minify LESS Initialized');
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Min
+     *
+     * Minify a CSS file
+     *
+     * @param string $file
+     * @param bool $compact
+     * @param null $is_aggregated
+     * @return string
+     */
+    public function min($file, $compact = TRUE, $is_aggregated = NULL) {
+		$lessObj = new lessc();
+		$file = $lessObj->compileFile($file);
+		
+		if ($is_aggregated) {
+            $file = $this -> remove_charsets($file);
+        }
+
+        if ($compact != FALSE) {
+            return trim($this -> _optimize($file)) . "\n";
+        } else {
+            return "\n" . trim($file) . "\n\n";
+        }
+		
+	}
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Remove charsets
+     *
+     * Charset declarations removal to support do combine function
+     * in order to set a new one user defined charset at the beggining of the document
+     * to keep standars compliance (and fix Webkit buggy behaviours)
+     *
+     * @param string $contents
+     * @return string
+     */
+    private function remove_charsets($contents) {
+        return preg_replace('/^\s*@charset\s+[\'"](?:\S*)\b[\'"];/i', '', $contents);
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Optimize
+     * Optimize the contents of a css file
+     * based on Drupal 7 CSS Core aggregator
+     *
+     * @param string $contents
+     * @return string
+     */
+    private function _optimize($contents) {
+        // Perform some safe CSS optimizations.
+        // Regexp to match comment blocks.
+        $comment = '/\*[^*]*\*+(?:[^/*][^*]*\*+)*/';
+        // Regexp to match double quoted strings.
+        $double_quot = '"[^"\\\\]*(?:\\\\.[^"\\\\]*)*"';
+        // Regexp to match single quoted strings.
+        $single_quot = "'[^'\\\\]*(?:\\\\.[^'\\\\]*)*'";
+        // Strip all comment blocks, but keep double/single quoted strings.
+        $contents = preg_replace("<($double_quot|$single_quot)|$comment>Ss", "$1", $contents);
+        // Remove certain whitespace.
+        // There are different conditions for removing leading and trailing
+        // whitespace.
+        // @see http://php.net/manual/en/regexp.reference.subpatterns.php
+        $contents = preg_replace_callback('<' .
+        # Strip leading and trailing whitespace.
+        '\s*([@{};,])\s*' .
+        # Strip only leading whitespace from:
+        # - Closing parenthesis: Retain "@media (bar) and foo".
+        '| \s+([\)])' .
+        # Strip only trailing whitespace from:
+        # - Opening parenthesis: Retain "@media (bar) and foo".
+        # - Colon: Retain :pseudo-selectors.
+        '| ([\(:])\s+' . '>xS', array(get_class($this), '_optimize_call_back'), $contents);
+
+        return $contents;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Optimize CB
+     * Optimize Callback Helper companion for optimize fn
+     * based on Drupal 7 CSS Core aggregator
+     *
+     * @param string $matches
+     * @return array
+     */
+    private function _optimize_call_back($matches) {
+        // Discard the full match.
+        unset($matches[0]);
+
+        // Use the non-empty match.
+        return current(array_filter($matches));
+    }
+
+}
+
+
+/**
  * lessphp v0.3.8
  * http://leafo.net/lessphp
  *
- * LESS css compiler, adapted from http://compactor_lessss.org
+ * LESS css compiler, adapted from http://lesscss.org
  *
  * Copyright 2012, Leaf Corcoran <leafot@gmail.com>
  * Licensed under MIT or GPLv3, see LICENSE
@@ -15,31 +165,29 @@
  * The less compiler and parser.
  *
  * Converting LESS to CSS is a three stage process. The incoming file is parsed
- * by `compactor_less_parser` into a syntax tree, then it is compiled into another tree
- * representing the CSS structure by `compactor_less`. The CSS tree is fed into a
- * formatter, like `compactor_less_formatter` which then outputs CSS as a string.
+ * by `lessc_parser` into a syntax tree, then it is compiled into another tree
+ * representing the CSS structure by `lessc`. The CSS tree is fed into a
+ * formatter, like `lessc_formatter` which then outputs CSS as a string.
  *
  * During the first compile, all values are *reduced*, which means that their
  * types are brought to the lowest form before being dump as strings. This
  * handles math equations, variable dereferences, and the like.
  *
- * The `parse` function of `compactor_less` is the entry point.
+ * The `parse` function of `lessc` is the entry point.
  *
  * In summary:
  *
- * The `compactor_less` class creates an intstance of the parser, feeds it LESS code,
+ * The `lessc` class creates an intstance of the parser, feeds it LESS code,
  * then transforms the resulting tree to a CSS tree. This class also holds the
  * evaluation context, such as all available mixins and variables at any given
  * time.
  *
- * The `compactor_less_parser` class is only concerned with parsing its input.
+ * The `lessc_parser` class is only concerned with parsing its input.
  *
- * The `compactor_less_formatter` takes a CSS tree, and dumps it to a formatted string,
+ * The `lessc_formatter` takes a CSS tree, and dumps it to a formatted string,
  * handling things like indentation.
  */
-
- 
-class compactor_less {
+class lessc {
 	static public $VERSION = "v0.3.8";
 	static protected $TRUE = array("keyword", "true");
 	static protected $FALSE = array("keyword", "false");
@@ -179,7 +327,7 @@ class compactor_less {
 	 * Compiling the block involves pushing a fresh environment on the stack,
 	 * and iterating through the props, compiling each one.
 	 *
-	 * See compactor_less::compileProp()
+	 * See lessc::compileProp()
 	 *
 	 */
 	protected function compileBlock($block) {
@@ -1545,7 +1693,7 @@ class compactor_less {
 	// inject array of unparsed strings into environment as variables
 	protected function injectVariables($args) {
 		$this->pushEnv();
-		$parser = new compactor_less_parser($this, __METHOD__);
+		$parser = new lessc_parser($this, __METHOD__);
 		foreach ($args as $name => $strValue) {
 			if ($name{0} != '@') $name = '@'.$name;
 			$parser->count = 0;
@@ -1722,7 +1870,7 @@ class compactor_less {
 	}
 
 	protected function makeParser($name) {
-		$parser = new compactor_less_parser($this, $name);
+		$parser = new lessc_parser($this, $name);
 		$parser->writeComments = $this->preserveComments;
 
 		return $parser;
@@ -1733,11 +1881,11 @@ class compactor_less {
 	}
 
 	protected function newFormatter() {
-		$className = "compactor_less_formatter_lessjs";
+		$className = "lessc_formatter_lessjs";
 		if (!empty($this->formatterName)) {
 			if (!is_string($this->formatterName))
 				return $this->formatterName;
-			$className = "compactor_less_formatter_$this->formatterName";
+			$className = "lessc_formatter_$this->formatterName";
 		}
 
 		return new $className;
@@ -1959,7 +2107,7 @@ class compactor_less {
 
 // responsible for taking a string of LESS code and converting it into a
 // syntax tree
-class compactor_less_parser {
+class lessc_parser {
 	static protected $nextBlockId = 0; // used to uniquely identify blocks
 
 	static protected $precedence = array(
@@ -2007,10 +2155,10 @@ class compactor_less_parser {
 	// caches preg escaped literals
 	static protected $literalCache = array();
 
-	public function __construct($compactor_less, $sourceName = null) {
+	public function __construct($lessc, $sourceName = null) {
 		$this->eatWhiteDefault = true;
 		// reference to less needed for vPrefix, mPrefix, and parentSelector
-		$this->compactor_less = $compactor_less;
+		$this->lessc = $lessc;
 
 		$this->sourceName = $sourceName; // name used for error messages
 
@@ -2018,12 +2166,12 @@ class compactor_less_parser {
 
 		if (!self::$operatorString) {
 			self::$operatorString =
-				'('.implode('|', array_map(array('compactor_less', 'preg_quote'),
+				'('.implode('|', array_map(array('lessc', 'preg_quote'),
 					array_keys(self::$precedence))).')';
 
-			$commentSingle = compactor_less::preg_quote(self::$commentSingle);
-			$commentMultiLeft = compactor_less::preg_quote(self::$commentMultiLeft);
-			$commentMultiRight = compactor_less::preg_quote(self::$commentMultiRight);
+			$commentSingle = lessc::preg_quote(self::$commentSingle);
+			$commentMultiLeft = lessc::preg_quote(self::$commentMultiLeft);
+			$commentMultiRight = lessc::preg_quote(self::$commentMultiRight);
 
 			self::$commentMulti = $commentMultiLeft.'.*?'.$commentMultiRight;
 			self::$whitePattern = '/'.$commentSingle.'[^\n]*\s*|('.self::$commentMulti.')\s*|\s+/Ais';
@@ -2073,7 +2221,7 @@ class compactor_less_parser {
 	 * functions represent discrete grammatical rules for the language, and
 	 * they are able to capture the text that represents those rules.
 	 *
-	 * Consider the function compactor_less::keyword(). (all parse functions are
+	 * Consider the function lessc::keyword(). (all parse functions are
 	 * structured the same)
 	 *
 	 * The function takes a single reference argument. When calling the
@@ -2082,7 +2230,7 @@ class compactor_less_parser {
 	 * argument, advance the position in the buffer, and return true. If it
 	 * fails then it won't advance the buffer and it will return false.
 	 *
-	 * All of these parse functions are powered by compactor_less::match(), which behaves
+	 * All of these parse functions are powered by lessc::match(), which behaves
 	 * the same way, but takes a literal regular expression. Sometimes it is
 	 * more convenient to use match instead of creating a new function.
 	 *
@@ -2091,7 +2239,7 @@ class compactor_less_parser {
 	 *
 	 * But, if some of the rules in the chain succeed before one fails, then
 	 * the buffer position will be left at an invalid state. In order to
-	 * avoid this, compactor_less::seek() is used to remember and set buffer positions.
+	 * avoid this, lessc::seek() is used to remember and set buffer positions.
 	 *
 	 * Before parsing a chain, use $s = $this->seek() to remember the current
 	 * position into $s. Then if a chain fails, use $this->seek($s) to
@@ -2203,7 +2351,7 @@ class compactor_less_parser {
 				$hidden = true;
 				if (!isset($block->args)) {
 					foreach ($block->tags as $tag) {
-						if (!is_string($tag) || $tag{0} != $this->compactor_less->mPrefix) {
+						if (!is_string($tag) || $tag{0} != $this->lessc->mPrefix) {
 							$hidden = false;
 							break;
 						}
@@ -2248,7 +2396,7 @@ class compactor_less_parser {
 	protected function isDirective($dirname, $directives) {
 		// TODO: cache pattern in parser
 		$pattern = implode("|",
-			array_map(array("compactor_less", "preg_quote"), $directives));
+			array_map(array("lessc", "preg_quote"), $directives));
 		$pattern = '/^(-[a-z-]+-)?(' . $pattern . ')$/i';
 
 		return preg_match($pattern, $dirname);
@@ -2257,8 +2405,8 @@ class compactor_less_parser {
 	protected function fixTags($tags) {
 		// move @ tags out of variable namespace
 		foreach ($tags as &$tag) {
-			if ($tag{0} == $this->compactor_less->vPrefix)
-				$tag[0] = $this->compactor_less->mPrefix;
+			if ($tag{0} == $this->lessc->vPrefix)
+				$tag[0] = $this->lessc->mPrefix;
 		}
 		return $tags;
 	}
@@ -2273,7 +2421,7 @@ class compactor_less_parser {
 
 		if (count($values) == 0) return false;
 
-		$exps = compactor_less::compressList($values, ' ');
+		$exps = lessc::compressList($values, ' ');
 		return true;
 	}
 
@@ -2371,7 +2519,7 @@ class compactor_less_parser {
 
 		if (count($values) == 0) return false;
 
-		$value = compactor_less::compressList($values, ', ');
+		$value = lessc::compressList($values, ', ');
 		return true;
 	}
 
@@ -2533,7 +2681,7 @@ class compactor_less_parser {
 		$this->eatWhiteDefault = false;
 
 		$stop = array("'", '"', "@{", $end);
-		$stop = array_map(array("compactor_less", "preg_quote"), $stop);
+		$stop = array_map(array("lessc", "preg_quote"), $stop);
 		// $stop[] = self::$commentMulti;
 
 		if (!is_null($rejectStrs)) {
@@ -2611,7 +2759,7 @@ class compactor_less_parser {
 
 		// look for either ending delim , escape, or string interpolation
 		$patt = '([^\n]*?)(@\{|\\\\|' .
-			compactor_less::preg_quote($delim).')';
+			lessc::preg_quote($delim).')';
 
 		$oldWhite = $this->eatWhiteDefault;
 		$this->eatWhiteDefault = false;
@@ -2657,7 +2805,7 @@ class compactor_less_parser {
 			$this->keyword($var) &&
 			$this->literal("}", false))
 		{
-			$out = array("variable", $this->compactor_less->vPrefix . $var);
+			$out = array("variable", $this->lessc->vPrefix . $var);
 			$this->eatWhiteDefault = $oldWhite;
 			if ($this->eatWhiteDefault) $this->whitespace();
 			return true;
@@ -2812,7 +2960,7 @@ class compactor_less_parser {
 			if ($this->whitespace()) $value .= " ";
 
 			// escape parent selector, (yuck)
-			$value = str_replace($this->compactor_less->parentSelector, "$&$", $value);
+			$value = str_replace($this->lessc->parentSelector, "$&$", $value);
 			return true;
 		}
 
@@ -2912,13 +3060,13 @@ class compactor_less_parser {
 	// consume a less variable
 	protected function variable(&$name) {
 		$s = $this->seek();
-		if ($this->literal($this->compactor_less->vPrefix, false) &&
+		if ($this->literal($this->lessc->vPrefix, false) &&
 			($this->variable($sub) || $this->keyword($name)))
 		{
 			if (!empty($sub)) {
 				$name = array('variable', $sub);
 			} else {
-				$name = $this->compactor_less->vPrefix.$name;
+				$name = $this->lessc->vPrefix.$name;
 			}
 			return true;
 		}
@@ -3033,7 +3181,7 @@ class compactor_less_parser {
 		}
 
 		if (!isset(self::$literalCache[$what])) {
-			self::$literalCache[$what] = compactor_less::preg_quote($what);
+			self::$literalCache[$what] = lessc::preg_quote($what);
 		}
 
 		return $this->match(self::$literalCache[$what], $m, $eatWhitespace);
@@ -3073,7 +3221,7 @@ class compactor_less_parser {
 		} else {
 			$validChars = $allowNewline ? "." : "[^\n]";
 		}
-		if (!$this->match('('.$validChars.'*?)'.compactor_less::preg_quote($what), $m, !$until)) return false;
+		if (!$this->match('('.$validChars.'*?)'.lessc::preg_quote($what), $m, !$until)) return false;
 		if ($until) $this->count -= strlen($what); // give back $what
 		$out = $m[1];
 		return true;
@@ -3243,7 +3391,7 @@ class compactor_less_parser {
 
 }
 
-class compactor_less_formatter_classic {
+class lessc_formatter_classic {
 	public $indentChar = "  ";
 
 	public $break = "\n";
@@ -3338,7 +3486,7 @@ class compactor_less_formatter_classic {
 	}
 }
 
-class compactor_less_formatter_compressed extends compactor_less_formatter_classic {
+class lessc_formatter_compressed extends lessc_formatter_classic {
 	public $disableSingle = true;
 	public $open = "{";
 	public $selectorSeparator = ",";
@@ -3351,11 +3499,11 @@ class compactor_less_formatter_compressed extends compactor_less_formatter_class
 	}
 }
 
-class compactor_less_formatter_lessjs extends compactor_less_formatter_classic {
+class lessc_formatter_lessjs extends lessc_formatter_classic {
 	public $disableSingle = true;
 	public $breakSelectors = true;
 	public $assignSeparator = ": ";
 	public $selectorSeparator = ",";
 }
-
-
+/* End of file Compactor_less.php */
+/* Location: ./bundles/compactor/libraries/drivers/compactor_less.php */

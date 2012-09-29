@@ -16,9 +16,9 @@
  * http://opensource.org/licenses/OSL-3.0
  *
  * @package     Laravel-Compactor
- * @author      Eric Barnes
  * @author      Jeroen Van Meerendonk
  * @author      Joseba Juániz
+ * @author      Eric Barnes
  * @copyright   Copyright (c) Eric Barnes. (http://ericlbarnes.com/)
  * @copyright   Copyright (c) Cyneek. (http://cyneek.com)
  * @license     http://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
@@ -406,4 +406,4 @@ class JSMin {
 class JSMinException extends Exception {}
 
 /* End of file Minify_js.php */
-/* Location: ./application/libraries/Minify/drivers/Minify_js.php */
+/* Location: ./bundles/compactor/libraries/drivers/compactor_js.php */
