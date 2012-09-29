@@ -16,20 +16,13 @@ http://opensource.org/licenses/OSL-3.0
 
 LICENSE: http://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
 
-Author list: 
+## Author list: 
 
 		Jeroen Van Meerendonk
 		Joseba Juániz
 		Eric Barnes
 
-
-
-
-// ------------------------------------------------------------------------
-// ------------------------------------------------------------------------
-	API LIST OF METHODS:
-// ------------------------------------------------------------------------
-// ------------------------------------------------------------------------
+## API LIST OF METHODS:
 	
 	Compactor class:
 		
@@ -81,11 +74,9 @@ Author list:
 														If the second parameter is NULL, the method will 
 														return a string with all the data.
 																
-// ------------------------------------------------------------------------
-// ------------------------------------------------------------------------
-	EXAMPLES
-// ------------------------------------------------------------------------
-// ------------------------------------------------------------------------
+
+## EXAMPLES
+
 
 	Here's an example of how to use it in a controller.
 
