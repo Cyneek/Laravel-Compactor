@@ -11,27 +11,32 @@ A minification bundle for Laravel, based on the [Minify Driver for CodeIgniter](
 	
 ### Compactor class
 	
-`combine_file($file)`: Selects a file to compact. Iou can pass a string parameter with just one file to compact or pass an array of strings with a list of files that will be checked for compactation.
+#### `combine_file($file)`
+Selects a file to compact. Iou can pass a string parameter with just one file to compact or pass an array of strings with a list of files that will be checked for compactation.
 
 	$compactor->combine_files('../file.css');
 	$compactor->combine_files(array('../file1.css','../file2.css'));
 
-
-`combine_directory($dir, (opt)$ignore)`: Selects a group of css or js files from a directory to compact. You can pass optionally a second parameter with an array of files to be ignored in the compact process.
+#### `combine_directory($dir, (opt)$ignore)`
+Selects a group of css or js files from a directory to compact. You can pass optionally a second parameter with an array of files to be ignored in the compact process.
 
 	$compactor->combine_directory('../css_files');
 	$compactor->combine_directory('../css_files', array('../css_files/file1.css'));
 
 
-`save_file($file)`: Compacts all the files selected and saves the stream in the given route.
+#### `save_file($file)`
+Compacts all the files selected and saves the stream in the given route.
 
 	$compactor->save_file('../css/compact.css');
 	$compactor->combine_directory('../css_files')->save_file('../css/compact.css');
 
-`show_contents($type, $compact = TRUE, $css_charset = 'utf-8')`: Returns in a string the compacted contents of the selected files.
+
+#### `show_contents($type, $compact = TRUE, $css_charset = 'utf-8')`
+Returns in a string the compacted contents of the selected files.
 
 	$compactor->show_contents();
 	$compactor->combine_directory('../css_files')->show_contents();
+
 
 ### CSS class
 
