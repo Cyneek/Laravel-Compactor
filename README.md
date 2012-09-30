@@ -12,13 +12,13 @@ A minification bundle for Laravel, based on the [Minify Driver for CodeIgniter](
 ### Compactor class
 	
 #### `combine_file($file)`
-Selects a file to compact. Iou can pass a string parameter with just one file to compact or pass an array of strings with a list of files that will be checked for compactation.
+Selects a file to compact. You can pass a string parameter with just one file to compact or pass an array of strings with a list of files that will be checked for compactation.
 
 	$compactor->combine_files('../file.css');
 	$compactor->combine_files(array('../file1.css','../file2.css'));
 
 #### `combine_directory($dir, (opt)$ignore)`
-Selects a group of css or js files from a directory to compact. You can pass optionally a second parameter with an array of files to be ignored in the compact process.
+Selects a group of css, less or js files from a directory to compact. You can pass optionally a second parameter with an array of files to be ignored in the compact process.
 
 	$compactor->combine_directory('../css_files');
 	$compactor->combine_directory('../css_files', array('../css_files/file1.css'));
