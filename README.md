@@ -6,6 +6,10 @@ A minification bundle for Laravel, based on the [Minify Driver for CodeIgniter](
 ## Credits
 * Jeroen van Meerendonk - [GitHub](http://github.com/jeroen) - [Twitter](http://twitter.com/jeroen_bz)
 * Joseba Juániz - [GitHub](http://github.com/patroklo) - [Twitter](http://twitter.com/patroklo)
+ 
+## Install
+* `php artisan bundle:install laravel-compactor`
+* Add the `'compactor' => array('auto' => false)` to bundles.php
 
 ## Usage
 	
