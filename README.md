@@ -11,6 +11,10 @@ A minification bundle for Laravel, based on the [Minify Driver for CodeIgniter](
 * `php artisan bundle:install laravel-compactor`
 * Add the `'compactor' => array('auto' => false)` to bundles.php
 
+## Install
+* `php artisan bundle:install laravel-compactor`
+* Add `'compactor'` in the `retrun array()` at bundles.php
+
 ## Usage
 	
 ### Compactor class
